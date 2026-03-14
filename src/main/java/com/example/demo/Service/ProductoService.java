@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import com.example.demo.Exceptions.InvalidProductEx;
 import com.example.demo.Model.Producto;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,11 @@ public class ProductoService {
 
     public Producto agregarProducto(Producto nuevoProducto) {
         nuevoProducto.setId(idGenerator.getAndIncrement());
+        if(nuevoProducto.getNombre() == null || nuevoProducto.getPrecio() == null){
+            throw new InvalidProductEx("Verifica los campos");
+
+
+        }
         productos.add(nuevoProducto);
         return nuevoProducto;
     }
