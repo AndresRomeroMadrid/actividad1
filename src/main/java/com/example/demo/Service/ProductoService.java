@@ -4,15 +4,17 @@ import com.example.demo.Exceptions.InvalidProductEx;
 import com.example.demo.Model.Producto;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class ProductoService {
 
-    private final List<Producto> productos = new ArrayList<>();
+    // Se usa CopyOnWriteArrayList para garantizar alta disponibilidad y manejar múltiples solicitudes concurrentes
+    // de una manera segura y thread-safe (sin problemas por condiciones de carrera o bloqueos).
+    private final List<Producto> productos = new CopyOnWriteArrayList<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     public ProductoService() {
@@ -33,8 +35,6 @@ public class ProductoService {
         nuevoProducto.setId(idGenerator.getAndIncrement());
         if(nuevoProducto.getNombre() == null || nuevoProducto.getPrecio() == null){
             throw new InvalidProductEx("Verifica los campos");
-
-
         }
         productos.add(nuevoProducto);
         return nuevoProducto;
@@ -48,8 +48,7 @@ public class ProductoService {
             producto.setPrecio(productoActualizado.getPrecio());
             return producto;
         }
-        return null; // En una app real, aquí lanzaríamos una excepción personalizada (ej.
-                     // ResourceNotFoundException)
+        return null;
     }
 
     public boolean eliminarProducto(Long id) {
