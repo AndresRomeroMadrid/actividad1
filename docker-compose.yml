@@ -1,7 +1,55 @@
-services:
+version: '3.8'
 
-  app:
-    build: .
-    container_name: demo-app
+services:
+  # Load Balancer to distribute traffic between app instances
+  haproxy:
+    image: haproxy:alpine
     ports:
-      - "${PORT:8080}:8080"
+      - "80:80"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - app1
+      - app2
+
+  # App instance 1
+  app1:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/demo_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # App instance 2
+  app2:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/demo_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Database
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=demo_db
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  mysql_data:
