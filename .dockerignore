@@ -3,9 +3,6 @@ target/
 .git/
 .gitignore
 .vscode/
-.mvn/
-mvnw
-mvnw.cmd
 Dockerfile
 docker-compose.yml
 .dockerignore
